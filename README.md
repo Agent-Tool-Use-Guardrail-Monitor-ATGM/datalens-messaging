@@ -70,8 +70,8 @@ python -m venv .venv
 The test creates its own credentials, Compose project, loopback port and volume.
 It checks confirmed publishing, permission denials, redelivery, persistence
 after container recreation and dead-letter routing. Cleanup removes that test
-project and its volume. The local acceptance suite passed. The GitHub workflow exposes the required
-`tests` job. Remote PR CI awaits the repository's base commit.
+project and its volume. The acceptance suite passed on local Docker and GitHub
+Actions. The `tests` job must pass before merge.
 
 This is step **3.8.4.4.1**. After verified PR delivery, **3.8.4.4.2** adds the
 publisher in `datalens-identity`. Step **3.8.4.5** verifies transport across
