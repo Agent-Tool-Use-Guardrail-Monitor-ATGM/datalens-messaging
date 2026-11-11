@@ -1,0 +1,55 @@
+{
+  "vhosts": [{"name": "identity"}],
+  "permissions": [
+    {
+      "user": "identity-publisher",
+      "vhost": "identity",
+      "configure": "^$",
+      "write": "^identity\\.events\\.v1$",
+      "read": "^$"
+    },
+    {
+      "user": "agent-identity-consumer",
+      "vhost": "identity",
+      "configure": "^$",
+      "write": "^$",
+      "read": "^agent\\.identity\\.v1$"
+    }
+  ],
+  "topic_permissions": [
+    {
+      "user": "identity-publisher",
+      "vhost": "identity",
+      "exchange": "identity.events.v1",
+      "write": "^user\\..+$",
+      "read": "^$"
+    }
+  ],
+  "exchanges": [
+    {"name": "identity.events.v1", "vhost": "identity", "type": "topic", "durable": true, "auto_delete": false, "internal": false, "arguments": {}},
+    {"name": "identity.dead.v1", "vhost": "identity", "type": "direct", "durable": true, "auto_delete": false, "internal": false, "arguments": {}}
+  ],
+  "queues": [
+    {"name": "agent.identity.v1", "vhost": "identity", "durable": true, "auto_delete": false, "arguments": {"x-queue-type": "quorum"}},
+    {"name": "agent.identity.dead.v1", "vhost": "identity", "durable": true, "auto_delete": false, "arguments": {"x-queue-type": "quorum"}}
+  ],
+  "bindings": [
+    {"source": "identity.events.v1", "vhost": "identity", "destination": "agent.identity.v1", "destination_type": "queue", "routing_key": "user.#", "arguments": {}},
+    {"source": "identity.dead.v1", "vhost": "identity", "destination": "agent.identity.dead.v1", "destination_type": "queue", "routing_key": "agent.identity.dead.v1", "arguments": {}}
+  ],
+  "policies": [
+    {
+      "vhost": "identity",
+      "name": "agent-identity-dead-letter",
+      "pattern": "^agent\\.identity\\.v1$",
+      "apply-to": "quorum_queues",
+      "priority": 0,
+      "definition": {
+        "dead-letter-exchange": "identity.dead.v1",
+        "dead-letter-routing-key": "agent.identity.dead.v1",
+        "dead-letter-strategy": "at-least-once",
+        "overflow": "reject-publish"
+      }
+    }
+  ]
+}
