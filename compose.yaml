@@ -1,0 +1,30 @@
+services:
+  rabbitmq:
+    image: rabbitmq:4.4.0@sha256:485319d42170eab53d8a030e1cc49d95e41f5d325479fa504736db8091981eb7
+    hostname: rabbitmq
+    ports:
+      - "127.0.0.1:${RABBITMQ_PORT:-5672}:5672"
+    volumes:
+      - broker-data:/var/lib/rabbitmq
+      - type: bind
+        source: ./rabbitmq.conf
+        target: /etc/rabbitmq/conf.d/30-datalens.conf
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${RABBITMQ_DEFINITIONS_FILE:-./secrets/definitions.json}
+        target: /etc/rabbitmq/definitions.json
+        read_only: true
+        bind:
+          create_host_path: false
+    healthcheck:
+      test: ["CMD-SHELL", "rabbitmq-diagnostics -q check_running && rabbitmq-diagnostics -q check_port_listener 5672 && rabbitmq-diagnostics -q check_local_alarms"]
+      interval: 10s
+      timeout: 8s
+      retries: 10
+      start_period: 20s
+    stop_grace_period: 30s
+
+volumes:
+  broker-data:
